@@ -18,12 +18,13 @@ def dataLoader(folder_path):
                     else:
                         continue  # Skip malformed lines
                     data.append({
-                        'id': int(id_),
-                        'x': float(x),
-                        'y': float(y),
-                        'width': float(width),
-                        'height': float(height),
-                        'object': obj if obj is not None else None,
+                        'cls': int(id_),
+                        'xywh': [float(x), float(y), float(width), float(height)],
+                        # 'x': float(x),
+                        # 'y': float(y),
+                        # 'width': float(width),
+                        # 'height': float(height),
+                        'id': obj if obj is not None else None,
                         'filename': filename
                     })
     return data
@@ -35,7 +36,66 @@ track = dataLoader("track-lables")
 # Print to verify
 print(pre[:5])  # Only show first 5 to avoid overload
 print(track[:5])
+print(len(pre), len(track))
 
+# Step 1: Normalize and index the track list
+track_index = {}
+
+for o in track:
+    if o['cls'] not in [0, 37]:
+        continue
+    o_cls = 0 if o['cls'] == 37 else o['cls']
+    key = (o['filename'], o_cls, o['xywh'][0], o['xywh'][1])
+    track_index[key] = {
+        'cls': 0,
+        'xywh': o['xywh'],
+        'id': o['id'],
+        'filename': o['filename']
+    }
+
+# Step 2: Loop through pre and match using the index
+combined = []
+
+for i in pre:
+    if i['cls'] not in [0, 37]:
+        continue
+    i_cls = 0 if i['cls'] == 37 else i['cls']
+    key = (i['filename'], i_cls, i['xywh'][0], i['xywh'][1])
+
+    if key in track_index:
+        combined.append(track_index[key])
+        # print(f"Matched: {i['filename']} - cls: 0 - {i['xywh']}")
+    else:
+        combined.append({
+            'cls': 0,
+            'xywh': i['xywh'],
+            'id': None,
+            'filename': i['filename']
+        })
+        # print(f"No match: {i['filename']}")
+
+        # print(f"No match: {i_filename}")
+
+        # print(f"No match: {i['filename']}")
+
+print(len(combined), len(pre), len(track))
+
+# for o in pre:
+#     if any(o['filename'] == i['filename'] and
+#            o['cls'] == i['cls'] and
+#            o['xywh'][0] == i['xywh'][0] and
+#            o['xywh'][1] == i['xywh'][1] for i in track):
+#         combined.append({
+#             'cls': i['cls'],
+#             'xywh': i['xywh'],
+#             'id': i['id'],
+#             'filename': i['filename']})
+#     else:
+#         combined.append({
+#             'cls': o['cls'],
+#             'xywh': o['xywh'],
+#             'id': None,
+#             'filename': o['filename']})
 # Tracker logic
 tracker_instance = tracker.tracker()
 
@@ -43,13 +103,8 @@ tracker_instance = tracker.tracker()
 from collections import defaultdict
 
 grouped = defaultdict(list)
-for entry in pre:
+for entry in combined:
     grouped[entry['filename']].append(entry)
 
-x= 0
 for filename, group in grouped.items():
-    print(f"\nProcessing file: {filename}")
-    print(type(group))  # Should be a list of dicts
-    print(x)
-    x+=1
     tracker_instance.track(group)
