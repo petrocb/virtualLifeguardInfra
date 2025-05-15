@@ -53,6 +53,11 @@ for o in track:
         'filename': o['filename']
     }
 
+max_id = max(
+    (int(obj['id']) for obj in track if obj['id'] is not None and str(obj['id']).isdigit()),
+    default=None
+) + 1
+print(f"The largest number in the last column (ID) across all files is: {max_id}")
 # Step 2: Loop through pre and match using the index
 combined = []
 
@@ -69,9 +74,10 @@ for i in pre:
         combined.append({
             'cls': 0,
             'xywh': i['xywh'],
-            'id': None,
+            'id': max_id,
             'filename': i['filename']
         })
+        max_id += 1
         # print(f"No match: {i['filename']}")
 
         # print(f"No match: {i_filename}")
@@ -79,7 +85,14 @@ for i in pre:
         # print(f"No match: {i['filename']}")
 
 print(len(combined), len(pre), len(track))
+# print("track: ", track)
+# print("track: ", track[-1])
 
+
+
+
+
+# print("combined: ", combined)
 # for o in pre:
 #     if any(o['filename'] == i['filename'] and
 #            o['cls'] == i['cls'] and
