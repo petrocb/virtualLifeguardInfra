@@ -31,7 +31,7 @@ def dataLoader(folder_path):
 
 # Load the data
 pre = dataLoader("pre-labels")
-track = dataLoader("track-lables")
+track = dataLoader("track-labels")
 
 # Print to verify
 print(pre[:5])  # Only show first 5 to avoid overload

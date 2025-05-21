@@ -11,8 +11,9 @@ class tracker:
 
     def writeToFile(self, file, data, id):
         with open(file, "a") as log:
-            log.write(f"{data['cls']} {str(data['xywh']).replace("[", "").replace("]", "").replace(",", "")} {id}\n")
+            # log.write(f"{data['cls']} {str(data['xywh']).replace("[", "").replace("]", "").replace(",", "")} {id}\n")
             # log.write(f"{data['cls']} {data['xywh']}\n")
+            log.write(f"{data['cls']} {str(data['xywh']).replace("[", "").replace("]", "").replace(",", "")}\n")
 
 
     def track(self, results):
@@ -26,9 +27,7 @@ class tracker:
         if self.locations is None:
             if os.path.exists("results"):
                 shutil.rmtree("results")
-                os.makedirs("results")
-            else:
-                os.makedirs("results")
+            os.makedirs("results")
             self.locations = []
             for i in results:
                 self.locations.append({
@@ -47,13 +46,15 @@ class tracker:
                 # self.writeToFile(f"results/{i['filename']}", i)
                 with open(f"results/{i['filename']}", "a") as log:
                     log.write(
-                        f"{i['cls']} {str(i['xywh']).replace("[", "").replace("]", "").replace(",", "")} {i['id']}\n")
+                        # f"{i['cls']} {str(i['xywh']).replace("[", "").replace("]", "").replace(",", "")} {i['id']}\n")
+                        f"{i['cls']} {str(i['xywh']).replace("[", "").replace("]", "").replace(",", "")}\n")
+
         else:
             for o in results:
             # if result id matches a location id - add a step to existing location id
                 match = next((loc for loc in self.locations if loc['yoloIDs'][-1] == o['id']), None)
                 if match:
-                    print('we matched id: ' + str(match['id']))
+                    # print('we matched id: ' + str(match['id']))
                     match['steps'].append({
                         'time': datetime.utcnow(),
                         'x': o['xywh'][0],
@@ -68,7 +69,7 @@ class tracker:
                         if (abs(o['xywh'][0] - loc['steps'][-1]['x']) < 100 and
                                 abs(o['xywh'][1] - loc['steps'][-1]['y']) < 100 and
                                 not any(result['id'] == loc['yoloIDs'][-1] for result in results)):
-                            print('we swapped an id: ' + str(loc['id']) + ' with: ' + str(o['id']))
+                            # print('we swapped an id: ' + str(loc['id']) + ' with: ' + str(o['id']))
                             loc['yoloIDs'].append(o['id'])
                             loc['steps'].append({
                                 'time': datetime.utcnow(),
@@ -81,7 +82,7 @@ class tracker:
 
                 # if we still haven't added the current result id into the locations, add a new location id
                 if not any(loc['yoloIDs'][-1] == o['id'] for loc in self.locations):
-                    print('we added a new id: ' + str(o['id']))
+                    # print('we added a new id: ' + str(o['id']))
                     self.locations.append({
                         'id': o['id'],
                         'yoloIDs': [o['id']],
